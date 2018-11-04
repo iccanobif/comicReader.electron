@@ -8,7 +8,7 @@ let zoomLevel = 1
 function showImage(buffer)
 {
     let encoded = buffer.toString("base64")
-    document.getElementById("immagine").src = "data:image/*;base64," + encoded
+    document.getElementById("Image").src = "data:image/*;base64," + encoded
     window.scrollTo(0, 0)
 }
 
@@ -37,7 +37,13 @@ document.addEventListener("keydown", (event) =>
             break;
         case "+":
             event.preventDefault()
-            document.getElementById("immagine").style = "width"
+            zoomLevel *= 1.1
+            remote.getCurrentWindow().webContents.setZoomFactor(zoomLevel)
+            break;
+        case "-":
+            event.preventDefault()
+            zoomLevel *= 0.9
+            remote.getCurrentWindow().webContents.setZoomFactor(zoomLevel)
             break;
         case "Delete":
             remote.BrowserWindow.getFocusedWindow().minimize();

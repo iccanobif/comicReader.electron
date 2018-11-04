@@ -22,9 +22,8 @@ body
     z-index: 2;
 }
 
-#immagine
+#Image
 {
-    /* width: 100%; */
     display: block;
     margin: auto;
 }
