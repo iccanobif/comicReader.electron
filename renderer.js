@@ -1,29 +1,20 @@
 const fs = require("fs")
 const { remote } = require('electron')
+const { ArchiveReader } = require("./ArchiveReader.js")
 
+let archive = new ArchiveReader("d:/manga/raws/(一般コミック) [本宮ひろ志] 俺の空 刑事編 全７巻 (800x1200).zip")
+let zoomLevel = 1
 
-function log(msg)
+function showImage(buffer)
 {
-    console.log(msg)
-    document.getElementById("console").innerHTML += msg + "<br />"
-}
-
-let imagePaths = ["img.png", "img.jpg", "altra.png"]
-let i = 0
-
-function showImage(url)
-{
-    fs.readFile(url, (err, data) =>
-    {
-        let encoded = data.toString("base64")
-        document.getElementById("immagine").src = "data:image/*;base64," + encoded
-    })
+    let encoded = buffer.toString("base64")
+    document.getElementById("immagine").src = "data:image/*;base64," + encoded
     window.scrollTo(0, 0)
 }
 
 function showCurrentImage()
 {
-    showImage(imagePaths[i])
+    archive.getCurrentFile((buffer) => showImage(buffer))
 }
 
 document.addEventListener("keydown", (event) =>
@@ -32,17 +23,21 @@ document.addEventListener("keydown", (event) =>
     {
         case "PageDown":
             event.preventDefault()
-            i = (i + 1) % imagePaths.length
+            archive.moveToNextFile()
             showCurrentImage()
-
             break;
         case "PageUp":
             event.preventDefault()
-            if (i == 0)
-                i = imagePaths.length - 1
-            else
-                i -= 1
+            archive.moveToPreviousFile()
             showCurrentImage()
+            break;
+        case "Home":
+            event.preventDefault()
+            window.scrollTo(0, 0)
+            break;
+        case "+":
+            event.preventDefault()
+            document.getElementById("immagine").style = "width"
             break;
         case "Delete":
             remote.BrowserWindow.getFocusedWindow().minimize();
@@ -52,5 +47,8 @@ document.addEventListener("keydown", (event) =>
     // log(event.shiftKey ? "con shift" : "senza shift")
 })
 
-
-showCurrentImage()
+archive.executeWhenLoaded(() =>
+{
+    document.getElementById("LoadingScreen").style.display = "none"
+    showCurrentImage()
+})
