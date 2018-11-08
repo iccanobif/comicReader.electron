@@ -1,6 +1,7 @@
 const fs = require("fs")
 const jszip = require("jszip")
 const unrar = require("node-unrar-js")
+const naturalComparer = require("./naturalComparer.js")
 
 class ArchiveReader
 {
@@ -30,10 +31,27 @@ class ArchiveReader
                             {
                                 return !zip.files[x].dir
                             })
+                            .sort(naturalComparer.compare)
                         this.isInitialized = true
                         this.callbacks.forEach(callback => callback())
                     })
             })
+        }
+        if (this.rootPath.toUpperCase().endsWith(".RAR"))
+        {
+            //TODO usa unrar-promise per avere l'API asincrona!
+
+            this.deserializedArchive = unrar.createExtractorFromFile(this.rootPath)
+            let list = this.deserializedArchive.getFileList()
+            if (list[0].state != "SUCCESS")
+                throw new Error(list[0].reason + list[0].msg)
+            this.fileList = list[1]
+                .fileHeaders
+                .filter(x => !x.flags.directory)
+                .map(x => x.name)
+                .sort(naturalComparer.compare)
+            this.isInitialized = true
+            this.callbacks.forEach(callback => callback())
         }
     }
 
@@ -60,13 +78,29 @@ class ArchiveReader
     getCurrentFile(callback)
     {
         if (!this.isInitialized) throw new Error("ArchiveReader still not initialized!")
-        this.deserializedArchive
-            .file(this.fileList[this.currentPosition])
-            .async("nodebuffer")
-            .then((buffer) =>
-            {
-                callback(buffer)
-            })
+        if (this.rootPath.toUpperCase().endsWith(".RAR"))
+        {
+            this.deserializedArchive.extractAll()
+            let content = this.deserializedArchive
+                .extractFiles([this.fileList[this.currentPosition]])
+                // .extractAll()
+                // [1]
+                // .files
+                // [0]
+                // .extract
+                // [1]
+
+            console.log(content)
+            callback(content)
+        }
+        else
+            this.deserializedArchive
+                .file(this.fileList[this.currentPosition])
+                .async("nodebuffer")
+                .then((buffer) =>
+                {
+                    callback(buffer)
+                })
     }
 
     moveToNextFile()

@@ -8,10 +8,14 @@
 </head>
 
 <body>
+  <script>
+    const { remote } = require('electron')
+    remote.getCurrentWindow().webContents.setZoomFactor(zoomLevel)
+  </script>
   <div id="LoadingScreen">
     <span id="LoadingText">Loading...</span>
   </div>
-    <img id="Image" />
+  <img id="Image" />
   <script>require('./renderer.js')</script>
 </body>
 

@@ -4,7 +4,7 @@ let mainWindow
 
 function createWindow()
 {
-  mainWindow = new BrowserWindow({title: "Comic reader", autoHideMenuBar: true})
+  mainWindow = new BrowserWindow({ title: "Comic reader", autoHideMenuBar: true })
   mainWindow.loadFile('index.html')
   // mainWindow.webContents.openDevTools()
   mainWindow.on('closed', function ()

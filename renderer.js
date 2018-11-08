@@ -1,4 +1,3 @@
-const fs = require("fs")
 const { remote } = require('electron')
 const { ArchiveReader } = require("./ArchiveReader.js")
 
@@ -15,6 +14,12 @@ function showImage(buffer)
 function showCurrentImage()
 {
     archive.getCurrentFile((buffer) => showImage(buffer))
+}
+
+function setZoom(zoom)
+{
+    zoomLevel = zoom
+    remote.getCurrentWindow().webContents.setZoomFactor(zoomLevel)
 }
 
 document.addEventListener("keydown", (event) =>
@@ -38,12 +43,12 @@ document.addEventListener("keydown", (event) =>
         case "+":
             event.preventDefault()
             zoomLevel *= 1.1
-            remote.getCurrentWindow().webContents.setZoomFactor(zoomLevel)
+            setZoom(zoomLevel)
             break;
         case "-":
             event.preventDefault()
             zoomLevel *= 0.9
-            remote.getCurrentWindow().webContents.setZoomFactor(zoomLevel)
+            setZoom(zoomLevel)
             break;
         case "Delete":
             remote.BrowserWindow.getFocusedWindow().minimize();
@@ -52,6 +57,8 @@ document.addEventListener("keydown", (event) =>
 
     // log(event.shiftKey ? "con shift" : "senza shift")
 })
+
+setZoom(1)
 
 archive.executeWhenLoaded(() =>
 {
