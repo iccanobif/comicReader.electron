@@ -1,7 +1,8 @@
 const fs = require("fs")
 const jszip = require("jszip")
-const unrar = require("node-unrar-js")
+const childprocess = require("child_process")
 const naturalComparer = require("./naturalComparer.js")
+const iconv = require("iconv-lite")
 
 class ArchiveReader
 {
@@ -21,7 +22,13 @@ class ArchiveReader
             {
                 if (err) throw err
                 jszip
-                    .loadAsync(data)
+                    .loadAsync(data, {
+                        decodeFileName: (nameUint8Array) =>
+                        {
+                            let newName = iconv.decode(Buffer.from(nameUint8Array), "Shift_JIS")
+                            return newName
+                        }
+                    })
                     .then((zip) =>
                     {
                         this.deserializedArchive = zip
@@ -39,19 +46,42 @@ class ArchiveReader
         }
         if (this.rootPath.toUpperCase().endsWith(".RAR"))
         {
-            //TODO usa unrar-promise per avere l'API asincrona!
+            childprocess.exec("unrar la " + this.rootPath, { encoding: "buffer" }, (error, stdout, stderr) =>
+            {
+                if (error) throw error
+                if (stderr.length > 0) throw new Error(stderr)
 
-            this.deserializedArchive = unrar.createExtractorFromFile(this.rootPath)
-            let list = this.deserializedArchive.getFileList()
-            if (list[0].state != "SUCCESS")
-                throw new Error(list[0].reason + list[0].msg)
-            this.fileList = list[1]
-                .fileHeaders
-                .filter(x => !x.flags.directory)
-                .map(x => x.name)
-                .sort(naturalComparer.compare)
-            this.isInitialized = true
-            this.callbacks.forEach(callback => callback())
+                let foundActualLines = false
+                let lines = iconv.decode(stdout, "Shift_JIS").split("\n")
+                this.fileList = []
+
+                for (let i = 0; i < lines.length; i++)
+                {
+                    if (lines[i].startsWith("---"))
+                    {
+                        if (foundActualLines == false)
+                        {
+                            foundActualLines = true
+                            continue
+                        }
+                        else
+                        {
+                            // Already parsed all relevant lines
+                            this.fileList = this.fileList.sort(naturalComparer.compare)
+                            this.isInitialized = true
+                            this.callbacks.forEach(callback => callback())
+                            return
+                        }
+                    }
+
+                    if (foundActualLines)
+                    {
+                        let splits = lines[i].split(" ").filter(x => x != "")
+                        if (splits[0][3] != "D")
+                            this.fileList.push(splits[splits.length - 1].trimRight().replace(/\\/g, "/"))
+                    }
+                }
+            })
         }
     }
 
@@ -69,7 +99,7 @@ class ArchiveReader
         return this.fileList
     }
 
-    getCurrentFileName() 
+    getCurrentFileName()
     {
         if (!this.isInitialized) throw new Error("ArchiveReader still not initialized!")
         return this.fileList[this.currentPosition]
@@ -78,24 +108,20 @@ class ArchiveReader
     getCurrentFile(callback)
     {
         if (!this.isInitialized) throw new Error("ArchiveReader still not initialized!")
-        if (this.rootPath.toUpperCase().endsWith(".RAR"))
-        {
-            this.deserializedArchive.extractAll()
-            let content = this.deserializedArchive
-                .extractFiles([this.fileList[this.currentPosition]])
-                // .extractAll()
-                // [1]
-                // .files
-                // [0]
-                // .extract
-                // [1]
 
-            console.log(content)
-            callback(content)
-        }
+        if (this.rootPath.toUpperCase().endsWith(".RAR"))
+            childprocess
+                .exec("unrar -inul p " + this.rootPath + " \"" + this.getCurrentFileName().replace(/\//g, "\\") + "\"",
+                    (error, stdout, stderr) =>
+                    {
+                        if (error) throw error
+                        if (stderr) throw new Error(stderr)
+
+                        callback(stdout)
+                    })
         else
             this.deserializedArchive
-                .file(this.fileList[this.currentPosition])
+                .file(this.getCurrentFileName())
                 .async("nodebuffer")
                 .then((buffer) =>
                 {

@@ -1,5 +1,6 @@
 const assert = require("assert")
-const ArchiveReader = require("../ArchiveReader.js")
+const ArchiveReader = require("../ArchiveReader")
+const naturalComparer = require("../naturalComparer")
 
 describe("ArchiveReader", function ()
 {
@@ -26,7 +27,7 @@ describe("ArchiveReader", function ()
           {
             assert.deepStrictEqual(archive.getFileList(),
               ["test/test1.txt",
-                "test/test2.txt",
+                "test/テスト２.txt",
                 "test/subdirectory/test3.txt"])
           })
           it("should position the archive at the first file by default", () =>
@@ -36,7 +37,7 @@ describe("ArchiveReader", function ()
           it("moveToNextFile() and moveToPreviousFile()", () =>
           {
             archive.moveToNextFile()
-            assert.equal(archive.getCurrentFileName(), "test/test2.txt")
+            assert.equal(archive.getCurrentFileName(), "test/テスト２.txt")
             archive.moveToNextFile()
             assert.equal(archive.getCurrentFileName(), "test/subdirectory/test3.txt")
             archive.moveToNextFile()
@@ -44,7 +45,7 @@ describe("ArchiveReader", function ()
             archive.moveToPreviousFile()
             assert.equal(archive.getCurrentFileName(), "test/subdirectory/test3.txt")
             archive.moveToPreviousFile()
-            assert.equal(archive.getCurrentFileName(), "test/test2.txt")
+            assert.equal(archive.getCurrentFileName(), "test/テスト２.txt")
           })
           it("moveToPosition()", () =>
           {
@@ -64,4 +65,16 @@ describe("ArchiveReader", function ()
         })
       });
   })
+})
+
+describe("naturalComparer", function ()
+{
+  it("should order alphabetically when there are no numbers", () => {
+    assert.ok(naturalComparer.compare("abc", "def") < 0)
+  })
+  it("should put less deeply nested files first", () =>
+  {
+    assert.ok(naturalComparer.compare("test/test", "testtesttesttesttest") > 0)
+  })
+
 })
