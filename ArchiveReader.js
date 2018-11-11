@@ -5,6 +5,8 @@ const naturalComparer = require("./naturalComparer.js")
 const iconv = require("iconv-lite")
 const combineErrors = require("combine-errors")
 
+const allowedImageExtensions = /\.(jpg|jpeg|png|gif|bmp)$/i
+
 class ArchiveReader
 {
     constructor(rootPath)
@@ -35,9 +37,9 @@ class ArchiveReader
                         this.deserializedArchive = zip
                         this.fileList = Object
                             .keys(zip.files)
-                            .filter(x =>
+                            .filter(fileName =>
                             {
-                                return !zip.files[x].dir
+                                return !zip.files[fileName].dir && fileName.match(allowedImageExtensions)
                             })
                             .sort(naturalComparer.compare)
                         this.isInitialized = true
@@ -73,7 +75,9 @@ class ArchiveReader
                             else
                             {
                                 // Already parsed all relevant lines
-                                this.fileList = this.fileList.sort(naturalComparer.compare)
+                                this.fileList = this.fileList
+                                    .filter(fileName => fileName.match(allowedImageExtensions))
+                                    .sort(naturalComparer.compare)
                                 this.isInitialized = true
                                 this.callAllCallbacks(null)
                                 return
