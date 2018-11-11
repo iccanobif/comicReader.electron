@@ -1,8 +1,26 @@
 const { remote } = require('electron')
 const { ArchiveReader } = require("./ArchiveReader.js")
 
-let archive = new ArchiveReader("d:/manga/raws/(一般コミック) [本宮ひろ志] 俺の空 刑事編 全７巻 (800x1200).zip")
+let archive = null
 let zoomLevel = 1
+
+function die(error)
+{
+    alert(error)
+}
+
+function loadArchive(newArchive)
+{
+    archive = newArchive
+    document.getElementById("LoadingScreen").style.display = "block"
+    console.log("sono qui")
+    archive.executeWhenLoaded(() =>
+    {
+        console.log("finito loading")
+        document.getElementById("LoadingScreen").style.display = "none"
+        showCurrentImage()
+    })
+}
 
 function showImage(buffer)
 {
@@ -13,7 +31,11 @@ function showImage(buffer)
 
 function showCurrentImage()
 {
-    archive.getCurrentFile((buffer) => showImage(buffer))
+    archive.getCurrentFile((error, buffer) =>
+    {
+        if (error) die(error)
+        else showImage(buffer)
+    })
 }
 
 function setZoom(zoom)
@@ -59,9 +81,4 @@ document.addEventListener("keydown", (event) =>
 })
 
 setZoom(1)
-
-archive.executeWhenLoaded(() =>
-{
-    document.getElementById("LoadingScreen").style.display = "none"
-    showCurrentImage()
-})
+loadArchive(new ArchiveReader("D:/manga/yotsuba/raws/Raw-Zip.Com-Yotsubato_v11-12.rar"))

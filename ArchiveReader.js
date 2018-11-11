@@ -3,6 +3,7 @@ const jszip = require("jszip")
 const childprocess = require("child_process")
 const naturalComparer = require("./naturalComparer.js")
 const iconv = require("iconv-lite")
+const combineErrors = require("combine-errors")
 
 class ArchiveReader
 {
@@ -40,49 +41,72 @@ class ArchiveReader
                             })
                             .sort(naturalComparer.compare)
                         this.isInitialized = true
-                        this.callbacks.forEach(callback => callback())
+                        this.callAllCallbacks(null)
                     })
             })
         }
-        if (this.rootPath.toUpperCase().endsWith(".RAR"))
+        else if (this.rootPath.toUpperCase().endsWith(".RAR"))
         {
-            childprocess.exec("unrar la " + this.rootPath, { encoding: "buffer" }, (error, stdout, stderr) =>
-            {
-                if (error) throw error
-                if (stderr.length > 0) throw new Error(stderr)
-
-                let foundActualLines = false
-                let lines = iconv.decode(stdout, "Shift_JIS").split("\n")
-                this.fileList = []
-
-                for (let i = 0; i < lines.length; i++)
+            childprocess.exec("unrar la " + this.rootPath,
                 {
-                    if (lines[i].startsWith("---"))
-                    {
-                        if (foundActualLines == false)
-                        {
-                            foundActualLines = true
-                            continue
-                        }
-                        else
-                        {
-                            // Already parsed all relevant lines
-                            this.fileList = this.fileList.sort(naturalComparer.compare)
-                            this.isInitialized = true
-                            this.callbacks.forEach(callback => callback())
-                            return
-                        }
-                    }
+                    encoding: "buffer",
+                    maxBuffer: 1024 * 1024 * 1024 // 1 gigabyte
+                },
+                (error, stdout, stderr) =>
+                {
+                    if (error) throw error
+                    if (stderr.length > 0) throw new Error(stderr)
 
-                    if (foundActualLines)
+                    let foundActualLines = false
+                    let lines = iconv.decode(stdout, "Shift_JIS").split("\n")
+                    this.fileList = []
+
+                    for (let i = 0, line = lines[0]; i < lines.length; i++ , line = lines[i])
                     {
-                        let splits = lines[i].split(" ").filter(x => x != "")
-                        if (splits[0][3] != "D")
-                            this.fileList.push(splits[splits.length - 1].trimRight().replace(/\\/g, "/"))
+                        if (line.startsWith("---"))
+                        {
+                            if (foundActualLines == false)
+                            {
+                                foundActualLines = true
+                                continue
+                            }
+                            else
+                            {
+                                // Already parsed all relevant lines
+                                this.fileList = this.fileList.sort(naturalComparer.compare)
+                                this.isInitialized = true
+                                this.callAllCallbacks(null)
+                                return
+                            }
+                        }
+
+                        if (foundActualLines)
+                        {
+                            line = line.trim()
+                            if (line[3] != "D")
+                            {
+                                // remove the first 4 colums (attributes, size, date and time), which are basically 4 instances 
+                                // of one block of non-whitespace and one block of whitespace
+                                let fileName = line.replace(/([^\s]*[\s]*){4}/, "")
+                                this.fileList.push(fileName.replace(/\\/g, "/"))
+                            }
+                        }
                     }
-                }
-            })
+                })
         }
+        else if (fs.statSync(this.rootPath).isDirectory())
+        {
+            throw new Error("to be implemented")
+        }
+        else
+        {
+            throw new Error("can't open path " + this.rootPath + " as an archive.")
+        }
+    }
+
+    callAllCallbacks(error)
+    {
+        this.callbacks.forEach(callback => callback(error))
     }
 
     executeWhenLoaded(callback)
@@ -111,22 +135,31 @@ class ArchiveReader
 
         if (this.rootPath.toUpperCase().endsWith(".RAR"))
             childprocess
-                .exec("unrar -inul p " + this.rootPath + " \"" + this.getCurrentFileName().replace(/\//g, "\\") + "\"",
+                .exec("unrar -inul p \"" + this.rootPath + "\" \"" + this.getCurrentFileName().replace(/\//g, "\\") + "\"",
+                    {
+                        encoding: "buffer",
+                        maxBuffer: 1024 * 1024 * 1024 // 1 gigabyte
+                    },
                     (error, stdout, stderr) =>
                     {
-                        if (error) throw error
-                        if (stderr) throw new Error(stderr)
-
-                        callback(stdout)
+                        if (error) callback(combineErrors([error, new Error(stderr)]))
+                        else if (stderr && stderr.length > 0) callback(new Error(stderr))
+                        else callback(null, stdout)
                     })
         else
             this.deserializedArchive
                 .file(this.getCurrentFileName())
                 .async("nodebuffer")
-                .then((buffer) =>
-                {
-                    callback(buffer)
-                })
+                .then(
+                    (buffer) =>
+                    {
+                        callback(null, buffer)
+                    },
+                    (error) =>
+                    {
+                        callback(error)
+                    }
+                )
     }
 
     moveToNextFile()

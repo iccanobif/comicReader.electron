@@ -21,41 +21,48 @@ describe("ArchiveReader", function ()
       {
         let archive = tuple.archive
 
+        let filenames = ["test/filename with  spaces.txt",
+          "test/test.txt",
+          "test/テスト.txt",
+          "test/subdirectory/file in subdirectory.txt"]
+
         describe(tuple.type + " archives", () =>
         {
           it("should return the file list with getFileList()", () =>
           {
             assert.deepStrictEqual(archive.getFileList(),
-              ["test/test1.txt",
-                "test/テスト２.txt",
-                "test/subdirectory/test3.txt"])
+              filenames)
           })
           it("should position the archive at the first file by default", () =>
           {
-            assert.equal(archive.getCurrentFileName(), "test/test1.txt")
+            assert.equal(archive.getCurrentFileName(), filenames[0])
           })
           it("moveToNextFile() and moveToPreviousFile()", () =>
           {
             archive.moveToNextFile()
-            assert.equal(archive.getCurrentFileName(), "test/テスト２.txt")
+            assert.equal(archive.getCurrentFileName(), filenames[1])
             archive.moveToNextFile()
-            assert.equal(archive.getCurrentFileName(), "test/subdirectory/test3.txt")
+            assert.equal(archive.getCurrentFileName(), filenames[2])
             archive.moveToNextFile()
-            assert.equal(archive.getCurrentFileName(), "test/test1.txt")
+            assert.equal(archive.getCurrentFileName(), filenames[3])
+            archive.moveToNextFile()
+            assert.equal(archive.getCurrentFileName(), filenames[0])
             archive.moveToPreviousFile()
-            assert.equal(archive.getCurrentFileName(), "test/subdirectory/test3.txt")
+            assert.equal(archive.getCurrentFileName(), filenames[3])
             archive.moveToPreviousFile()
-            assert.equal(archive.getCurrentFileName(), "test/テスト２.txt")
+            assert.equal(archive.getCurrentFileName(), filenames[2])
           })
           it("moveToPosition()", () =>
           {
-            archive.moveToPosition(0)
-            assert.equal(archive.getCurrentFileName(), "test/test1.txt")
+            archive.moveToPosition(1)
+            assert.equal(archive.getCurrentFileName(), filenames[1])
           })
           it("getCurrentFile()", (done) => 
           {
-            archive.getCurrentFile((buffer) =>
+            // Assuming that the previous tests moved me to the "test/test.txt" file
+            archive.getCurrentFile((error, buffer) =>
             {
+              assert.ifError(error)
               if (buffer.toString() === "test1")
                 done()
               else
@@ -63,13 +70,14 @@ describe("ArchiveReader", function ()
             })
           })
         })
-      });
+      })
   })
 })
 
 describe("naturalComparer", function ()
 {
-  it("should order alphabetically when there are no numbers", () => {
+  it("should order alphabetically when there are no numbers", () =>
+  {
     assert.ok(naturalComparer.compare("abc", "def") < 0)
   })
   it("should put less deeply nested files first", () =>
