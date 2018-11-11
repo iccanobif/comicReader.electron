@@ -1,6 +1,8 @@
 const assert = require("assert")
+const fs = require("fs")
 const ArchiveReader = require("../ArchiveReader")
 const naturalComparer = require("../naturalComparer")
+const { ComicLibrary } = require("../ComicLibrary")
 
 describe("ArchiveReader", function ()
 {
@@ -86,5 +88,44 @@ describe("naturalComparer", function ()
   {
     assert.ok(naturalComparer.compare("test/test", "testtesttesttesttest") > 0)
   })
+})
 
+describe("ComicLibrary", function ()
+{
+  if (fs.existsSync("test/library.db"))
+    fs.unlinkSync("test/library.db")
+  let library = new ComicLibrary("test/library.db")
+  let testComicId = null
+  it("should be able to save a new comic", () =>
+  {
+    return library
+      .saveComic({
+        path: "/fake/path/to/comic",
+        title: "ＣＯＭＩＣ　ＴＩＴＬＥ",
+        position: 10,
+        zoom: 1.2
+      })
+      .then(comicId =>
+      {
+        assert.ok(comicId) // Check if it's not null
+        testComicId = comicId
+      })
+  })
+  it("shoud be able to load a previously saved comic", () =>
+  {
+    return library.loadComic(testComicId)
+      .then(data => 
+      {
+        assert.strictEqual(data.path, "/fake/path/to/comic")
+        assert.strictEqual(data.title, "ＣＯＭＩＣ　ＴＩＴＬＥ")
+        assert.strictEqual(data.position, 10)
+        assert.strictEqual(data.zoom, 1.2)
+      })
+  })
+  it("should be able to update an existing comic", async () =>
+  {
+    await library.saveComic({ comicId: testComicId, position: 20 })
+    const comic = await library.loadComic(testComicId)
+    assert.deepEqual(comic.position, 20)
+  })
 })
