@@ -13,11 +13,11 @@ function loadArchive(newArchive)
 {
     archive = newArchive
     document.getElementById("LoadingScreen").style.display = "block"
-    console.log("sono qui")
+    document.getElementById("Image").style.display = "none"
     archive.executeWhenLoaded(() =>
     {
-        console.log("finito loading")
         document.getElementById("LoadingScreen").style.display = "none"
+        document.getElementById("Image").style.display = "block"
         showCurrentImage()
     })
 }
@@ -80,5 +80,14 @@ document.addEventListener("keydown", (event) =>
     // log(event.shiftKey ? "con shift" : "senza shift")
 })
 
-setZoom(1)
-loadArchive(new ArchiveReader("D:/manga/yotsuba/raws/Raw-Zip.Com-Yotsubato_v11-12.rar"))
+document.ondragover = (ev) =>
+{
+    ev.preventDefault()
+    // TODO add some visual effect
+}
+
+document.ondrop = (ev) =>
+{
+    ev.preventDefault()
+    loadArchive(new ArchiveReader(ev.dataTransfer.items[0].getAsFile().path))
+}
