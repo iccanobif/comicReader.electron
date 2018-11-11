@@ -70,7 +70,6 @@ describe("ArchiveReader", function ()
                 done()
               else
                 done("file content not correct")
-              0
             })
           })
         })
