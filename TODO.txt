@@ -5,3 +5,7 @@
 - loading
 - saving
 - navigation
+
+- https://devdocs.io/dom/canvasrenderingcontext2d/imagesmoothingquality
+
+- https://github.com/nodeca/pica (there was something wrong with this, can't remember exactly what)

@@ -16,24 +16,33 @@ class ArchiveReader
         this.currentPosition = 0
         this.isInitialized = false
         this.callbacks = []
+    }
 
-        if (this.rootPath.toUpperCase().endsWith(".ZIP")
-            || this.rootPath.toUpperCase().endsWith(".CBR")
-            || this.rootPath.toUpperCase().endsWith(".CBZ"))
+    async initialize()
+    {
+        return new Promise((resolve, reject) =>
         {
-            fs.readFile(this.rootPath, (err, data) =>
+            try
             {
-                if (err) throw err
-                jszip
-                    .loadAsync(data, {
-                        decodeFileName: (nameUint8Array) =>
-                        {
-                            let newName = iconv.decode(Buffer.from(nameUint8Array), "Shift_JIS")
-                            return newName
-                        }
-                    })
-                    .then((zip) =>
+                if (this.isInitialized)
+                    return resolve()
+
+                if (this.rootPath.toUpperCase().endsWith(".ZIP")
+                    || this.rootPath.toUpperCase().endsWith(".CBR")
+                    || this.rootPath.toUpperCase().endsWith(".CBZ"))
+                {
+                    fs.readFile(this.rootPath, async (err, data) =>
                     {
+                        if (err) reject(err)
+
+                        const zip = await jszip.loadAsync(data, {
+                            decodeFileName: (nameUint8Array) =>
+                            {
+                                let newName = iconv.decode(Buffer.from(nameUint8Array), "Shift_JIS")
+                                return newName
+                            }
+                        })
+
                         this.deserializedArchive = zip
                         this.fileList = Object
                             .keys(zip.files)
@@ -43,82 +52,76 @@ class ArchiveReader
                             })
                             .sort(naturalComparer.compare)
                         this.isInitialized = true
-                        this.callAllCallbacks(null)
+                        resolve()
                     })
-            })
-        }
-        else if (this.rootPath.toUpperCase().endsWith(".RAR"))
-        {
-            childprocess.exec("unrar la " + this.rootPath,
+                }
+                else if (this.rootPath.toUpperCase().endsWith(".RAR"))
                 {
-                    encoding: "buffer",
-                    maxBuffer: 1024 * 1024 * 1024 // 1 gigabyte
-                },
-                (error, stdout, stderr) =>
+                    console.log(this.rootPath)
+                    childprocess.exec("unrar la \"" + this.rootPath + "\"",
+                        {
+                            encoding: "buffer",
+                            maxBuffer: 1024 * 1024 * 1024 // 1 gigabyte
+                        },
+                        (error, stdout, stderr) =>
+                        {
+                            if (error) reject(error)
+                            if (stderr.length > 0) reject(new Error(stderr))
+
+                            let foundActualLines = false
+                            let lines = iconv.decode(stdout, "Shift_JIS").split("\n")
+                            this.fileList = []
+
+                            for (let i = 0, line = lines[0]; i < lines.length; i++ , line = lines[i])
+                            {
+                                if (line.startsWith("---"))
+                                {
+                                    if (foundActualLines == false)
+                                    {
+                                        foundActualLines = true
+                                        continue
+                                    }
+                                    else
+                                    {
+                                        // Already parsed all relevant lines
+                                        this.fileList = this.fileList
+                                            .filter(fileName => fileName.match(allowedImageExtensions))
+                                            .sort(naturalComparer.compare)
+                                        this.isInitialized = true
+                                        resolve()
+                                        return
+                                    }
+                                }
+
+                                if (foundActualLines)
+                                {
+                                    line = line.trim()
+                                    if (line[3] != "D")
+                                    {
+                                        // remove the first 4 colums (attributes, size, date and time), which are basically 4 instances 
+                                        // of one block of non-whitespace and one block of whitespace
+                                        let fileName = line.replace(/([^\s]*[\s]*){4}/, "")
+                                        this.fileList.push(fileName.replace(/\\/g, "/"))
+                                    }
+                                }
+                            }
+                        })
+                }
+                else if (fs.statSync(this.rootPath).isDirectory())
                 {
-                    if (error) throw error
-                    if (stderr.length > 0) throw new Error(stderr)
-
-                    let foundActualLines = false
-                    let lines = iconv.decode(stdout, "Shift_JIS").split("\n")
-                    this.fileList = []
-
-                    for (let i = 0, line = lines[0]; i < lines.length; i++ , line = lines[i])
-                    {
-                        if (line.startsWith("---"))
-                        {
-                            if (foundActualLines == false)
-                            {
-                                foundActualLines = true
-                                continue
-                            }
-                            else
-                            {
-                                // Already parsed all relevant lines
-                                this.fileList = this.fileList
-                                    .filter(fileName => fileName.match(allowedImageExtensions))
-                                    .sort(naturalComparer.compare)
-                                this.isInitialized = true
-                                this.callAllCallbacks(null)
-                                return
-                            }
-                        }
-
-                        if (foundActualLines)
-                        {
-                            line = line.trim()
-                            if (line[3] != "D")
-                            {
-                                // remove the first 4 colums (attributes, size, date and time), which are basically 4 instances 
-                                // of one block of non-whitespace and one block of whitespace
-                                let fileName = line.replace(/([^\s]*[\s]*){4}/, "")
-                                this.fileList.push(fileName.replace(/\\/g, "/"))
-                            }
-                        }
-                    }
-                })
-        }
-        else if (fs.statSync(this.rootPath).isDirectory())
-        {
-            throw new Error("to be implemented")
-        }
-        else
-        {
-            throw new Error("can't open path " + this.rootPath + " as an archive.")
-        }
-    }
-
-    callAllCallbacks(error)
-    {
-        this.callbacks.forEach(callback => callback(error))
-    }
-
-    executeWhenLoaded(callback)
-    {
-        if (this.isInitialized)
-            callback()
-        else
-            this.callbacks.push(callback)
+                    reject(new Error("to be implemented"))
+                }
+                else
+                {
+                    reject(new Error("can't open path " + this.rootPath + " as an archive."))
+                }
+            }
+            catch (error)
+            {
+                console.log("sono in questo handler")
+                reject(error)
+            }
+        })
     }
 
     getFileList()

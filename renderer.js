@@ -9,17 +9,22 @@ function die(error)
     alert(error)
 }
 
-function loadArchive(newArchive)
+async function loadArchive(newArchive)
 {
-    archive = newArchive
-    document.getElementById("LoadingScreen").style.display = "block"
-    document.getElementById("Image").style.display = "none"
-    archive.executeWhenLoaded(() =>
+    try
     {
+        archive = newArchive
+        document.getElementById("LoadingScreen").style.display = "block"
+        document.getElementById("Image").style.display = "none"
+        await archive.initialize()
         document.getElementById("LoadingScreen").style.display = "none"
         document.getElementById("Image").style.display = "block"
         showCurrentImage()
-    })
+    }
+    catch (error)
+    {
+        die(error)
+    }
 }
 
 function showImage(buffer)
@@ -88,6 +93,13 @@ document.ondragover = (ev) =>
 
 document.ondrop = (ev) =>
 {
-    ev.preventDefault()
-    loadArchive(new ArchiveReader(ev.dataTransfer.items[0].getAsFile().path))
+    try
+    {
+        ev.preventDefault()
+        loadArchive(new ArchiveReader(ev.dataTransfer.items[0].getAsFile().path))
+    }
+    catch (error)
+    {
+        die(error)
+    }
 }

@@ -8,12 +8,9 @@ describe("ArchiveReader", function ()
 {
   let zipArchive = new ArchiveReader.ArchiveReader("test/test.zip")
   let rarArchive = new ArchiveReader.ArchiveReader("test/test.rar")
-  before((done) =>
+  before(() =>
   {
-    zipArchive.executeWhenLoaded(() =>
-    {
-      rarArchive.executeWhenLoaded(done)
-    })
+    return Promise.all([zipArchive.initialize(), rarArchive.initialize()])
   })
   describe("Archives", () =>
   {
@@ -74,6 +71,12 @@ describe("ArchiveReader", function ()
           })
         })
       })
+    it("should open correctly archives with spaces and japanese characters in the file name", async () =>
+    {
+      const zipArchive = new ArchiveReader.ArchiveReader("test/this is a テスト.zip")
+      const rarArchive = new ArchiveReader.ArchiveReader("test/this is a テスト.rar")
+      return Promise.all([zipArchive.initialize(), rarArchive.initialize()])
+    })
   })
 })
 
