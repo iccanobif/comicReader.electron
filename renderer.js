@@ -62,20 +62,43 @@ function setZoom(zoom)
 
 document.addEventListener("keydown", (event) =>
 {
+    const canvas = document.getElementById("cnvs")
+    const middlePointY = Math.round((canvas.height - window.innerHeight) / 2)
     switch (event.key)
     {
         case "PageDown":
+        case "d":
             event.preventDefault()
             archive.moveToNextFile()
             showCurrentImage()
             break;
         case "PageUp":
+        case "a":
             event.preventDefault()
             archive.moveToPreviousFile()
             showCurrentImage()
             break;
         case "Home":
+        case "w":
             event.preventDefault()
+            if (window.scrollY <= middlePointY)
+                window.scrollTo(0, 0)
+            else
+                window.scrollTo(0, middlePointY)
+            break;
+        case "End":
+        case "s":
+            event.preventDefault()
+            if (window.scrollY < middlePointY)
+                window.scrollTo(0, middlePointY)
+            else
+                // Yeah, it's a bit exaggerated, but at least I can be 100%w sure the page will scroll to the bottom
+                window.scrollTo(0, middlePointY * 3)
+            break;
+        case "4": case "5": case "6":
+            window.scrollTo(0, middlePointY * 3)
+            break;
+        case "7": case "8": case "9":
             window.scrollTo(0, 0)
             break;
         case "+":

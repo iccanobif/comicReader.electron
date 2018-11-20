@@ -1,7 +1,7 @@
 - use some tool to detect the encoding of filenames in archives, instead of always defaulting to shift-jis
 - maybe it would have been better to leave the ArchiveReader constructor almost empty and have
   every other function asynchronous (returning promises) and make them load the file list if it hasn't already been done.
-- home and end keys
+- numpad keys
 - loading
 - saving
 - navigation
