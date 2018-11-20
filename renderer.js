@@ -3,6 +3,7 @@ const { ArchiveReader } = require("./ArchiveReader.js")
 
 let archive = null
 let zoomLevel = 1
+let currentImage = null
 
 function die(error)
 {
@@ -27,10 +28,14 @@ async function loadArchive(newArchive)
     }
 }
 
-function showImage(buffer)
+function drawCurrentImage()
 {
-    let encoded = buffer.toString("base64")
-    document.getElementById("Image").src = "data:image/*;base64," + encoded
+    const canvas = document.getElementById("cnvs")
+    const ctx = canvas.getContext("2d")
+    canvas.height = currentImage.naturalHeight * zoomLevel
+    canvas.width = currentImage.naturalWidth * zoomLevel
+    ctx.imageSmoothingQuality = "high"
+    ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height)
     window.scrollTo(0, 0)
 }
 
@@ -39,14 +44,20 @@ function showCurrentImage()
     archive.getCurrentFile((error, buffer) =>
     {
         if (error) die(error)
-        else showImage(buffer)
+        else
+        {
+            let encoded = buffer.toString("base64")
+            currentImage = new Image()
+            currentImage.src = "data:image/*;base64," + encoded
+            currentImage.onload = drawCurrentImage
+        }
     })
 }
 
 function setZoom(zoom)
 {
     zoomLevel = zoom
-    remote.getCurrentWindow().webContents.setZoomFactor(zoomLevel)
+    drawCurrentImage()
 }
 
 document.addEventListener("keydown", (event) =>
@@ -77,6 +88,14 @@ document.addEventListener("keydown", (event) =>
             zoomLevel *= 0.9
             setZoom(zoomLevel)
             break;
+        case "r":
+            event.preventDefault()
+            if (resizeQuality == "high")
+                resizeQuality = "low"
+            else
+                resizeQuality = "high"
+            drawCurrentImage()
+            break;
         case "Delete":
             remote.BrowserWindow.getFocusedWindow().minimize();
             break;
@@ -103,3 +122,5 @@ document.ondrop = (ev) =>
         die(error)
     }
 }
+
+loadArchive(new ArchiveReader("d:/manga/raws/chonettaiyaorgy.zip"))

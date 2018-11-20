@@ -23,7 +23,7 @@ body
     z-index: 2;
 }
 
-#Image
+#cnvs
 {
     display: block;
     margin: auto;
