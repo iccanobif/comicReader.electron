@@ -16,10 +16,10 @@ async function loadArchive(newArchive)
     {
         archive = newArchive
         document.getElementById("LoadingScreen").style.display = "block"
-        document.getElementById("Image").style.display = "none"
+        document.getElementById("cnvs").style.display = "none"
         await archive.initialize()
         document.getElementById("LoadingScreen").style.display = "none"
-        document.getElementById("Image").style.display = "block"
+        document.getElementById("cnvs").style.display = "block"
         showCurrentImage()
     }
     catch (error)
@@ -34,7 +34,7 @@ function drawCurrentImage()
     const ctx = canvas.getContext("2d")
     canvas.height = currentImage.naturalHeight * zoomLevel
     canvas.width = currentImage.naturalWidth * zoomLevel
-    ctx.imageSmoothingQuality = "high"
+    ctx.imageSmoothingQuality = "medium"
     ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height)
     window.scrollTo(0, 0)
 }

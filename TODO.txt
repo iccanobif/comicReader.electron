@@ -5,6 +5,7 @@
 - loading
 - saving
 - navigation
+- bicubic resizing
 
 - https://devdocs.io/dom/canvasrenderingcontext2d/imagesmoothingquality
 
