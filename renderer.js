@@ -1,5 +1,6 @@
-const { remote } = require('electron')
+const { remote } = require("electron")
 const { ArchiveReader } = require("./ArchiveReader.js")
+const $ = require("jquery")
 
 let archive = null
 let zoomLevel = 1

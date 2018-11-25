@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Comic reader",
   "main": "main.js",
+  "repository": {
+    "url": "https://github.com/iccanobif/comicReader.electron"
+  },
   "scripts": {
     "start": "electron .",
     "test": "mocha"
@@ -14,6 +17,7 @@
   "dependencies": {
     "combine-errors": "^3.0.3",
     "iconv-lite": "^0.4.24",
+    "jquery": "^3.3.1",
     "jszip": "^3.1.5",
     "sqlite": "^3.0.0",
     "uuid": "^3.3.2"
