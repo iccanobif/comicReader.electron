@@ -1,22 +1,29 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="UTF-8">
   <title>Hello World!</title>
   <link rel='stylesheet' href='main.css'>
 </head>
+
 <body>
   <script>
     const { remote } = require('electron')
     remote.getCurrentWindow().webContents.setZoomFactor(1)
   </script>
+
+  <div id="divLibrary">
+  </div>
+
   <div id="LoadingScreen">
     <span id="LoadingText">Loading...</span>
   </div>
   <canvas id="cnvs"></canvas>
-  <div id="divLibrary">
 
-  </div>
+  <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+  <script src="comicLibraryComponent.js"></script>
   <script>require('./renderer.js')</script>
 </body>
 

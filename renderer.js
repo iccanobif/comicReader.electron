@@ -123,6 +123,14 @@ document.addEventListener("keydown", (event) =>
         case "Delete":
             remote.BrowserWindow.getFocusedWindow().minimize();
             break;
+        case "l":
+            libraryComponent.setState({
+                comicList: [
+                    { name: "fuck" },
+                    { name: "shit" }
+                ]
+            })
+            break;
     }
 
     // log(event.shiftKey ? "con shift" : "senza shift")
@@ -148,3 +156,12 @@ document.ondrop = (ev) =>
 }
 
 loadArchive(new ArchiveReader("d:/manga/raws/chonettaiyaorgy.zip"))
+const libraryComponent = React.createElement(LibraryComponent,
+    {
+        comicList: [
+            { name: "merda" },
+            { name: "cacca" }
+        ]
+    })
+
+ReactDOM.render(libraryComponent, document.getElementById("divLibrary"));
