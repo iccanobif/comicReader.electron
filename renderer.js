@@ -1,7 +1,9 @@
 const { remote } = require("electron")
 const { ArchiveReader } = require("./ArchiveReader.js")
 const $ = require("jquery")
+const { ComicLibrary } = require("./ComicLibrary.js")
 
+const comicLibrary = new ComicLibrary("./library.db")
 let archive = null
 let zoomLevel = 1
 let currentImage = null
@@ -61,7 +63,7 @@ function setZoom(zoom)
     drawCurrentImage()
 }
 
-document.addEventListener("keydown", (event) =>
+document.addEventListener("keydown", async (event) =>
 {
     const canvas = document.getElementById("cnvs")
     const middlePointY = Math.round((canvas.height - window.innerHeight) / 2)
@@ -121,18 +123,20 @@ document.addEventListener("keydown", (event) =>
             drawCurrentImage()
             break;
         case "Delete":
-            remote.BrowserWindow.getFocusedWindow().minimize();
+            remote.BrowserWindow.getFocusedWindow().minimize()
             break;
         case "l":
-            libraryComponent.setState({
-                comicList: [
-                    { name: "fuck" },
-                    { name: "shit" }
-                ]
-            })
+            document.getElementById("divLibrary").style.display = "block"
+            const comicList = await comicLibrary.getComicList("")
+
+            const libraryComponent = React.createElement(LibraryComponent,
+                {
+                    comicList: comicList
+                })
+            
+            ReactDOM.render(libraryComponent, document.getElementById("listOfComics"));
             break;
     }
-
     // log(event.shiftKey ? "con shift" : "senza shift")
 })
 
@@ -156,12 +160,3 @@ document.ondrop = (ev) =>
 }
 
 loadArchive(new ArchiveReader("d:/manga/raws/chonettaiyaorgy.zip"))
-const libraryComponent = React.createElement(LibraryComponent,
-    {
-        comicList: [
-            { name: "merda" },
-            { name: "cacca" }
-        ]
-    })
-
-ReactDOM.render(libraryComponent, document.getElementById("divLibrary"));

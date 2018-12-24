@@ -15,16 +15,16 @@ class LibraryComponent extends React.Component
             this.props.comicList.map(x => React.createElement(
                 "a",
                 {
-                    key: x.name,
+                    key: x.title,
                     href: "#",
                     className: "comicLink",
                     onClick: (e) =>
                     {
                         e.preventDefault()
-                        alert(x.name)
+                        alert(x.title)
                     }
                 },
-                x.name
+                x.title
             ))
         )
         // React.createElement(

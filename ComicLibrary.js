@@ -17,7 +17,6 @@ module.exports.ComicLibrary =
                 try
                 {
                     const db = await sqlite.open(this.dbPath)
-
                     if (!this.initialized)
                     {
                         await db.exec(`CREATE TABLE IF NOT EXISTS COMICS (
@@ -49,9 +48,26 @@ module.exports.ComicLibrary =
             })
         }
 
-        getComicList(filter, callback)
+        async getComicList(filter)
         {
-            callback(null)
+            return new Promise(async (resolve, reject) =>
+            {
+                try
+                {
+                    const db = await this.getDb()
+                    resolve(await db.all(`select gbl_id as id, 
+                                                 path as path, 
+                                                 title as title, 
+                                                 position as position, 
+                                                 zoom as zoom 
+                                                 from comics 
+                                                 where upper(title) like ?`, "%" + filter.toUpperCase() + "%"))
+                }
+                catch (error)
+                {
+                    reject(error)
+                }
+            })
         }
 
         loadComic(comicId)

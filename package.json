@@ -8,10 +8,12 @@
   },
   "scripts": {
     "start": "electron .",
-    "test": "mocha"
+    "test": "mocha",
+    "postinstall": "electron-builder install-app-deps"
   },
   "devDependencies": {
     "electron": "^3.0.4",
+    "electron-builder": "^20.38.4",
     "mocha": "^5.2.0"
   },
   "dependencies": {
