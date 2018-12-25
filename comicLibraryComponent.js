@@ -21,7 +21,7 @@ class LibraryComponent extends React.Component
                     onClick: (e) =>
                     {
                         e.preventDefault()
-                        alert(x.title)
+                        this.props.comicSelectedHandler(x)
                     }
                 },
                 x.title
