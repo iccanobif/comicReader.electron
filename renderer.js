@@ -104,17 +104,19 @@ async function showLibrary()
         divLibrary.style.display = "block"
         const comicList = await comicLibrary.getComicList("")
 
-        const libraryComponent = React.createElement(LibraryComponent,
+        const filterableComicList = React.createElement(FilterableComicList,
             {
                 comicList: comicList,
-                comicSelectedHandler: comic =>
+                onComicSelected: comic =>
                 {
                     loadComic(comic)
                     divLibrary.style.display = "none"
                 }
             })
 
-        ReactDOM.render(libraryComponent, document.getElementById("listOfComics"))
+        ReactDOM.render(filterableComicList, document.getElementById("listOfComics"))
+        document.getElementById("listOfComics").focus()
+
     }
     catch (error)
     {
@@ -122,7 +124,7 @@ async function showLibrary()
     }
 }
 
-document.addEventListener("keydown", async (event) =>
+document.getElementById("navigationKeysGrabber").addEventListener("keydown", async (event) =>
 {
     if (event.key == "l")
     {

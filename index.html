@@ -14,13 +14,17 @@
   </script>
 
   <div id="divLibrary">
-    <div id="listOfComics">
+    <div id="listOfComics" tabindex="1">
     </div>
   </div>
 
   <div id="LoadingScreen">
     <span id="LoadingText">Loading...</span>
   </div>
+  <!-- tabindex="0" is necessary to make this div able to accept focus and receive keyboard events -->
+  <div tabindex="0" id="navigationKeysGrabber">
+  </div>
+
   <canvas id="cnvs"></canvas>
 
   <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
