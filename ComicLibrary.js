@@ -60,8 +60,10 @@ module.exports.ComicLibrary =
                                                  title as title, 
                                                  position as position, 
                                                  zoom as zoom 
-                                                 from comics 
-                                                 where upper(title) like ?`, "%" + filter.toUpperCase() + "%"))
+                                            from comics 
+                                           where upper(title) like ?
+                                        order by last_edit_date desc
+                                                 `, "%" + filter.toUpperCase() + "%"))
                 }
                 catch (error)
                 {
