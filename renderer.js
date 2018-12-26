@@ -4,26 +4,48 @@ const $ = require("jquery")
 const { ComicLibrary } = require("./ComicLibrary.js")
 
 const comicLibrary = new ComicLibrary("./library.db")
+const divLibrary = document.getElementById("divLibrary")
+
 let currentArchive = null
 let currentImage = null
 let currentZoomLevel = 1
 let currentComic = null
 
-
 function die(error)
 {
     alert(error)
+    hideLoader()
+}
+
+function showLoader()
+{
+    document.getElementById("LoadingScreen").style.display = "block"
+    document.getElementById("cnvs").style.display = "none"
+}
+
+function hideLoader()
+{
+    document.getElementById("LoadingScreen").style.display = "none"
+    document.getElementById("cnvs").style.display = "block"
 }
 
 async function loadComic(comic)
 {
-    currentComic = comic
-    currentZoomLevel = comic.zoom
+    try
+    {
+        showLoader()
+        currentComic = comic
+        currentZoomLevel = comic.zoom
 
-    const newReader = new ArchiveReader(comic.path)
-    await newReader.initialize()
-    newReader.moveToPosition(comic.position)
-    loadArchive(newReader)
+        const newReader = new ArchiveReader(comic.path)
+        await newReader.initialize()
+        newReader.moveToPosition(comic.position)
+        loadArchive(newReader)
+    }
+    catch (error)
+    {
+        die(error)
+    }
 }
 
 async function loadArchive(newArchive)
@@ -31,12 +53,9 @@ async function loadArchive(newArchive)
     try
     {
         currentArchive = newArchive
-        document.getElementById("LoadingScreen").style.display = "block"
-        document.getElementById("cnvs").style.display = "none"
+        showLoader()
         await currentArchive.initialize()
-        document.getElementById("LoadingScreen").style.display = "none"
-        document.getElementById("cnvs").style.display = "block"
-        showCurrentImage()
+        loadCurrentImage(() => { hideLoader() })
     }
     catch (error)
     {
@@ -55,7 +74,7 @@ function drawCurrentImage()
     window.scrollTo(0, 0)
 }
 
-function showCurrentImage()
+function loadCurrentImage(done)
 {
     currentArchive.getCurrentFile((error, buffer) =>
     {
@@ -66,6 +85,8 @@ function showCurrentImage()
             currentImage = new Image()
             currentImage.src = "data:image/*;base64," + encoded
             currentImage.onload = drawCurrentImage
+            if (done != undefined)
+                done()
         }
     })
 }
@@ -76,11 +97,11 @@ function setZoom(zoom)
     drawCurrentImage()
 }
 
-document.addEventListener("keydown", async (event) =>
+async function showLibrary()
 {
-    if (event.key == "l")
+    try
     {
-        document.getElementById("divLibrary").style.display = "block"
+        divLibrary.style.display = "block"
         const comicList = await comicLibrary.getComicList("")
 
         const libraryComponent = React.createElement(LibraryComponent,
@@ -89,11 +110,23 @@ document.addEventListener("keydown", async (event) =>
                 comicSelectedHandler: comic =>
                 {
                     loadComic(comic)
-                    document.getElementById("divLibrary").style.display = "none"
+                    divLibrary.style.display = "none"
                 }
             })
 
         ReactDOM.render(libraryComponent, document.getElementById("listOfComics"))
+    }
+    catch (error)
+    {
+        die(error)
+    }
+}
+
+document.addEventListener("keydown", async (event) =>
+{
+    if (event.key == "l")
+    {
+        showLibrary()
         return
     }
 
@@ -108,13 +141,13 @@ document.addEventListener("keydown", async (event) =>
             case "d":
                 event.preventDefault()
                 currentArchive.moveToNextFile()
-                showCurrentImage()
+                loadCurrentImage()
                 break;
             case "PageUp":
             case "a":
                 event.preventDefault()
                 currentArchive.moveToPreviousFile()
-                showCurrentImage()
+                loadCurrentImage()
                 break;
             case "Home":
             case "w":
@@ -185,3 +218,4 @@ document.ondrop = (ev) =>
     }
 }
 
+showLibrary()

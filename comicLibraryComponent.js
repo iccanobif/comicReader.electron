@@ -1,47 +1,32 @@
 'use strict';
 
-
 class LibraryComponent extends React.Component
 {
     constructor(props)
     {
-        super(props);
+        super(props)
+        this.state = { selectedIndex: 0 }
     }
     render()
     {
         return React.createElement(
-            "div",
-            {id: "merdaccia"},
-            this.props.comicList.map(x => React.createElement(
-                "a",
-                {
-                    key: x.title,
-                    href: "#",
-                    className: "comicLink",
-                    onClick: (e) =>
+            React.Fragment,
+            null,
+            this.props.comicList.map((x, i) =>
+                React.createElement(
+                    "a",
                     {
-                        e.preventDefault()
-                        this.props.comicSelectedHandler(x)
-                    }
-                },
-                x.title
-            ))
+                        key: x.title,
+                        href: "#",
+                        className: i == this.state.selectedIndex ? "comicLink" : "comicLink",
+                        onClick: (e) =>
+                        {
+                            e.preventDefault()
+                            this.props.comicSelectedHandler(x)
+                        }
+                    },
+                    x.title))
         )
-        // React.createElement(
-        //     React.Fragment,
-        //     null,
-        //     [React.createElement(
-        //         'a',
-        //         {
-        //             onClick: (e) =>
-        //             {
-        //                 e.preventDefault()
-        //                 this.setState({ liked: true })
-        //             },
-        //             href: "#"
-        //         },
-        //         this.state.liked ? "liked" : "like")
-        //     ].concat(
     }
 }
 

@@ -35,15 +35,17 @@ a:link {
     display: block;
 }
 
+.selectedComicLink {
+    display: block;
+    background-color: gray;
+}
+
 #divLibrary {
-    background-color: black;
+    background-color: blue;
     position: fixed;
-    display: none;
-    width: 300px;
-    height: 300px;
-    margin-left: -150px;
-    margin-top: -150px;
-    top: 50%;
-    left: 50%;
+    width: 90%;
+    height: 90%;
+    margin-left: 5%;
+    margin-top: 5%;
     overflow-y: auto;
 }
