@@ -11,6 +11,8 @@ let currentImage = null
 let currentZoomLevel = 1
 let currentComic = null
 
+let keysLocked = false
+
 function die(error)
 {
     alert(error)
@@ -72,10 +74,12 @@ function drawCurrentImage()
     ctx.imageSmoothingQuality = "medium"
     ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height)
     window.scrollTo(0, 0)
+    keysLocked = false
 }
 
 function loadCurrentImage(done)
 {
+    keysLocked = true
     currentArchive.getCurrentFile((error, buffer) =>
     {
         if (error) die(error)
@@ -142,12 +146,16 @@ document.getElementById("navigationKeysGrabber").addEventListener("keydown", asy
             case "PageDown":
             case "d":
                 event.preventDefault()
+                if (keysLocked)
+                    return
                 currentArchive.moveToNextFile()
                 loadCurrentImage()
                 break;
             case "PageUp":
             case "a":
                 event.preventDefault()
+                if (keysLocked)
+                    return
                 currentArchive.moveToPreviousFile()
                 loadCurrentImage()
                 break;
