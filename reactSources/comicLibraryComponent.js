@@ -10,22 +10,24 @@ class LibraryComponent extends React.Component
     render()
     {
         return (
-            React.Fragment,
-            null,
-            this.props.comicList.map((x, i) =>
-                React.createElement(
-                    "a",
+            <React.Fragment>
+                {
+                    this.props.comicList.map((x, i) =>
                     {
-                        key: x.title,
-                        href: "#",
-                        className: i == this.state.selectedIndex ? "comicLink" : "comicLink",
-                        onClick: (e) =>
-                        {
-                            e.preventDefault()
-                            this.props.comicSelectedHandler(x)
-                        }
-                    },
-                    x.title))
+                        return <a
+                            key={x.title}
+                            href="#"
+                            className={i == this.state.selectedIndex ? "comicLink" : "comicLink"}
+                            onClick={(e) =>
+                            {
+                                e.preventDefault()
+                                this.props.comicSelectedHandler(x)
+                            }}>
+                            {x.title}
+                        </a>
+                    })
+                }
+            </React.Fragment>
         )
     }
 }
