@@ -5,6 +5,7 @@ const { ComicLibrary } = require("./ComicLibrary.js")
 
 const comicLibrary = new ComicLibrary("./library.db")
 const divLibrary = document.getElementById("divLibrary")
+const navigationKeysGrabber = document.getElementById("navigationKeysGrabber")
 
 let currentArchive = null
 let currentImage = null
@@ -106,6 +107,7 @@ async function showLibrary()
     try
     {
         divLibrary.style.display = "block"
+        divLibrary.focus()
         const comicList = await comicLibrary.getComicList("")
 
         const filterableComicList = React.createElement(FilterableComicList,
@@ -115,6 +117,7 @@ async function showLibrary()
                 {
                     loadComic(comic)
                     divLibrary.style.display = "none"
+                    navigationKeysGrabber.focus()
                 }
             })
 
@@ -128,8 +131,14 @@ async function showLibrary()
     }
 }
 
-document.getElementById("navigationKeysGrabber").addEventListener("keydown", async (event) =>
+document.addEventListener("keydown", async (event) =>
 {
+    if (event.key=="Tab")
+    {
+        event.preventDefault()
+        return
+    }
+
     if (event.key == "l")
     {
         showLibrary()
@@ -206,7 +215,6 @@ document.getElementById("navigationKeysGrabber").addEventListener("keydown", asy
         }
         // log(event.shiftKey ? "con shift" : "senza shift")
     }
-
 })
 
 document.ondragover = (ev) =>
