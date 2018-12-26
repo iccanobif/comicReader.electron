@@ -70,7 +70,6 @@ class FilterableComicList extends React.Component
     }
     handleFilterTextChange(filterText)
     {
-        console.log("applying filter " + filterText)
         this.setState({
             filterText: filterText
         })
@@ -84,7 +83,11 @@ class FilterableComicList extends React.Component
                     onFilterTextChange={this.handleFilterTextChange}
                 />
                 <ComicList
-                    comicList={this.props.comicList}
+                    comicList={this.props.comicList
+                        .filter(comic =>
+                        {
+                            return comic.title.toUpperCase().indexOf(this.state.filterText.toUpperCase()) >= 0
+                        })}
                     selectedIndex={this.state.selectedIndex}
                     onComicSelected={this.props.onComicSelected}
                 />

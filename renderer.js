@@ -131,8 +131,9 @@ async function showLibrary()
     }
 }
 
-document.addEventListener("keydown", async (event) =>
+navigationKeysGrabber.addEventListener("keydown", async (event) =>
 {
+    // This is to prevent users from changing the focus (only the focused div receives keydown events)
     if (event.key=="Tab")
     {
         event.preventDefault()
