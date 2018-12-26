@@ -9,7 +9,10 @@
   "scripts": {
     "start": "electron .",
     "test": "mocha",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps",
+    "runbabelwatch": "npx babel --watch reactSources --out-dir reactOutputs --presets react-app/prod",
+    "runbabel": "npx babel reactSources --out-dir reactOutputs --presets react-app/prod",
+    "prestart": "npm run runbabel"
   },
   "devDependencies": {
     "electron": "^3.0.4",
@@ -17,6 +20,8 @@
     "mocha": "^5.2.0"
   },
   "dependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-react-app": "^3.1.2",
     "combine-errors": "^3.0.3",
     "iconv-lite": "^0.4.24",
     "jquery": "^3.3.1",

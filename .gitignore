@@ -2,3 +2,4 @@ node_modules
 UnRAR.exe
 test/library.db
 library.db
+reactOutputs

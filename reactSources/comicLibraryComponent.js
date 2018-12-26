@@ -9,7 +9,7 @@ class LibraryComponent extends React.Component
     }
     render()
     {
-        return React.createElement(
+        return (
             React.Fragment,
             null,
             this.props.comicList.map((x, i) =>
