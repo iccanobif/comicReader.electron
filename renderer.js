@@ -228,4 +228,10 @@ document.ondrop = (ev) =>
     }
 }
 
+document.onsubmit = (ev) =>
+{
+    console.log("Preventing submit...")
+    ev.preventDefault()
+}
+
 showLibrary()
