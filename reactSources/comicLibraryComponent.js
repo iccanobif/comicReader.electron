@@ -1,4 +1,6 @@
-'use strict';
+'use strict'
+
+const $ = require("jquery")
 
 class Filter extends React.Component
 {
@@ -25,14 +27,21 @@ class Filter extends React.Component
             case "Enter":
                 this.props.onSelectionConfirmed()
                 break;
+            case "Escape":
+                this.props.onWantToClosePopup()
+                break;
         }
     }
-
+    componentDidMount()
+    {
+        document.getElementById("libraryFilterText").focus()
+    }
     render() 
     {
         return (
             <form>
                 <input
+                    id="libraryFilterText"
                     type="text"
                     placeholder="Search..."
                     value={this.props.filterText}
@@ -60,7 +69,10 @@ class ComicList extends React.Component
                         return <a
                             key={comic.title}
                             href="#"
-                            className={i == this.props.selectedIndex ? "selectedComicLink" : "comicLink"}
+                            className={
+                                i == (this.props.selectedIndex % this.props.comicList.length)
+                                    ? "selectedComicLink"
+                                    : "comicLink"}
                             onClick={(e) =>
                             {
                                 e.preventDefault()
@@ -82,35 +94,43 @@ class FilterableComicList extends React.Component
         super(props)
         this.state = {
             filterText: "",
+            // For simplicity, selectedIndex can go <0 and >comicList.length, I can just use a modulo when I need to actually fetch the selected comic
             selectedIndex: 0
         }
         this.handleFilterTextChange = this.handleFilterTextChange.bind(this)
         this.handleMoveUp = this.handleMoveUp.bind(this)
         this.handleMoveDown = this.handleMoveDown.bind(this)
         this.handleSelectionConfirmed = this.handleSelectionConfirmed.bind(this)
+        this.handleWantToClosePopup = this.handleWantToClosePopup.bind(this)
     }
     handleFilterTextChange(filterText)
     {
         this.setState({
-            filterText: filterText
+            filterText: filterText,
+            selectedIndex: 0
         })
     }
     handleMoveUp()
     {
         this.setState({
-            selectedIndex: Math.max(0, this.state.selectedIndex - 1)
+            selectedIndex: this.state.selectedIndex - 1
         })
     }
     handleMoveDown()
     {
         this.setState({
-            selectedIndex: this.state.selectedIndex + 1 // TODO prevent going out of bounds
+            selectedIndex: this.state.selectedIndex + 1
         })
     }
     handleSelectionConfirmed()
     {
-        const selectedComic = this.getFilteredComicList()[this.state.selectedIndex]
+        const filteredList = this.getFilteredComicList()
+        const selectedComic = filteredList[this.state.selectedIndex % filteredList.length]
         this.props.onComicSelected(selectedComic)
+    }
+    handleWantToClosePopup()
+    {
+        this.props.onWantToClosePopup()
     }
     getFilteredComicList()
     {
@@ -130,6 +150,7 @@ class FilterableComicList extends React.Component
                     onMoveDown={this.handleMoveDown}
                     onMoveUp={this.handleMoveUp}
                     onSelectionConfirmed={this.handleSelectionConfirmed}
+                    onWantToClosePopup={this.handleWantToClosePopup}
                 />
                 <ComicList
                     comicList={this.getFilteredComicList()}

@@ -20,6 +20,14 @@ function die(error)
     hideLoader()
 }
 
+function setWindowTitle(str)
+{
+    document.title =
+        str == ""
+            ? "Comic Reader"
+            : "Comic Reader - " + str
+}
+
 function showLoader()
 {
     document.getElementById("LoadingScreen").style.display = "block"
@@ -86,6 +94,11 @@ function loadCurrentImage(done)
         if (error) die(error)
         else
         {
+            if (currentComic == null)
+                setWindowTitle(currentArchive.getCurrentFileName())
+            else
+                setWindowTitle("[" + currentComic.title + "] " + currentArchive.getCurrentFileName())
+
             let encoded = buffer.toString("base64")
             currentImage = new Image()
             currentImage.src = "data:image/*;base64," + encoded
@@ -102,12 +115,18 @@ function setZoom(zoom)
     drawCurrentImage()
 }
 
+function hideLibrary()
+{
+    divLibrary.style.display = "none"
+    ReactDOM.unmountComponentAtNode(document.getElementById("listOfComics"))
+    navigationKeysGrabber.focus()
+}
+
 async function showLibrary()
 {
     try
     {
         divLibrary.style.display = "block"
-        divLibrary.focus()
         const comicList = await comicLibrary.getComicList("")
 
         const filterableComicList = React.createElement(FilterableComicList,
@@ -116,14 +135,12 @@ async function showLibrary()
                 onComicSelected: comic =>
                 {
                     loadComic(comic)
-                    divLibrary.style.display = "none"
-                    navigationKeysGrabber.focus()
-                }
+                    hideLibrary()
+                },
+                onWantToClosePopup: hideLibrary
             })
 
         ReactDOM.render(filterableComicList, document.getElementById("listOfComics"))
-        document.getElementById("listOfComics").focus()
-
     }
     catch (error)
     {
@@ -134,7 +151,7 @@ async function showLibrary()
 navigationKeysGrabber.addEventListener("keydown", async (event) =>
 {
     // This is to prevent users from changing the focus (only the focused div receives keydown events)
-    if (event.key=="Tab")
+    if (event.key == "Tab")
     {
         event.preventDefault()
         return
@@ -179,6 +196,7 @@ navigationKeysGrabber.addEventListener("keydown", async (event) =>
                 break;
             case "End":
             case "s":
+            case " ":
                 event.preventDefault()
                 if (window.scrollY < middlePointY)
                     window.scrollTo(0, middlePointY)
