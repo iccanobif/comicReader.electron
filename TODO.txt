@@ -4,7 +4,6 @@
 - maybe it would have been better to leave the ArchiveReader constructor almost empty and have
   every other function asynchronous (returning promises) and make them load the file list if it hasn't already been done.
 - numpad keys
-- loading
 - saving
 - navigation
 - bicubic resizing

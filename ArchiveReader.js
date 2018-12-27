@@ -12,10 +12,10 @@ class ArchiveReader
     constructor(rootPath)
     {
         this.rootPath = rootPath
-        this.deserializedArchive = null
+        this.deserializedArchive = null // Used for zips
         this.currentPosition = 0
         this.isInitialized = false
-        this.callbacks = []
+        this.fileList = []
     }
 
     async initialize()
