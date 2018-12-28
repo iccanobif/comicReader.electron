@@ -1,4 +1,5 @@
 - make getCurrentFile() return a promise
+- download automatically unrar.exe if not present
 
 - use some tool to detect the encoding of filenames in archives, instead of always defaulting to shift-jis
 - maybe it would have been better to leave the ArchiveReader constructor almost empty and have
