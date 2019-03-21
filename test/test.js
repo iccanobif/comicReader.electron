@@ -1,8 +1,28 @@
 const assert = require("assert")
 const fs = require("fs")
+const path = require("path")
 const ArchiveReader = require("../ArchiveReader")
 const naturalComparer = require("../naturalComparer")
 const { ComicLibrary } = require("../ComicLibrary")
+const utils = require("../utils.js")
+
+describe("Utils", function () {
+  const getTestFileName = i => {
+    return path.join("test", "filenameTests", "Chapter 0" + i + ".zip")
+  }
+  it("findNextArchive() (go forward)", async () =>
+  {
+    assert.equal(await utils.findNextArchive(getTestFileName(1), true), getTestFileName(2))
+    assert.equal(await utils.findNextArchive(getTestFileName(2), true), getTestFileName(3))
+    assert.equal(await utils.findNextArchive(getTestFileName(3), true), getTestFileName(1))
+  })
+  it("findNextArchive() (go backwards)", async () =>
+  {
+    assert.equal(await utils.findNextArchive(getTestFileName(1), false), getTestFileName(3))
+    assert.equal(await utils.findNextArchive(getTestFileName(2), false), getTestFileName(1))
+    assert.equal(await utils.findNextArchive(getTestFileName(3), false), getTestFileName(2))
+  })
+})
 
 describe("ArchiveReader", function ()
 {
